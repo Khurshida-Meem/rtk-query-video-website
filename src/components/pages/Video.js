@@ -8,32 +8,52 @@ import Player from "../video/Player";
 import RelatedVideos from "../video/related/RelatedVideos";
 
 export default function Video() {
+  const { videoId } = useParams();
 
-    const {videoId} = useParams();
+  const { data: video, isLoading, isError } = useGetVideoQuery(videoId);
 
-    const {data:video, isLoading, isError} = useGetVideoQuery(videoId);
+  let content = null;
 
-    let content = null;
-
-    if(isLoading){
-        content = <><RelatedVideoLoader /><DescriptionLoader /> </>;
-    }
-    if(!isLoading && isError) {
-        content = <Error message="" />
-    }
-
-    return (
-        <section className="pt-6 pb-20 min-h-[calc(100vh_-_157px)]">
-            <div className="mx-auto max-w-7xl px-2 pb-20 min-h-[400px]">
-                <div className="grid grid-cols-3 gap-2 lg:gap-8">
-                    <div className="col-span-full w-full space-y-8 lg:col-span-2">
-                        <Player />
-                        <Description />
-                    </div>
-
-                    <RelatedVideos />
-                </div>
-            </div>
-        </section>
+  if (isLoading) {
+    content = (
+      <>
+        <RelatedVideoLoader />
+        <DescriptionLoader />
+      </>
     );
+  }
+  if (!isLoading && isError) {
+    content = <Error message="An error occured" />;
+  }
+  if (!isLoading && !isError && video?.id) {
+    content = (
+      <>
+        <Player link={video?.link} title={video?.title} />
+        <Description video={video}  />
+      </>
+    );
+  }
+
+  return (
+    <section className="pt-6 pb-20 min-h-[calc(100vh_-_157px)]">
+      <div className="mx-auto max-w-7xl px-2 pb-20 min-h-[400px]">
+        <div className="grid grid-cols-3 gap-2 lg:gap-8">
+          <div className="col-span-full w-full space-y-8 lg:col-span-2">
+            {content}
+          </div>
+          {video?.id ? (
+            <RelatedVideos />
+          ) : isLoading ? (
+            <>
+              <RelatedVideoLoader />
+              <RelatedVideoLoader />
+              <RelatedVideoLoader />
+            </>
+          ) : (
+            <Error message="An Error Occured" />
+          )}
+        </div>
+      </div>
+    </section>
+  );
 }
